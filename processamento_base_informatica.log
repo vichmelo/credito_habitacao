@@ -1,0 +1,6 @@
+2024-09-19 11:43:43,503 - INFO - Transformação do DataFrame ods_contrato concluída com sucesso.
+2024-09-19 11:43:43,571 - INFO - Transformação do DataFrame ods_interveniente concluída com sucesso.
+2024-09-19 11:44:03,928 - INFO - Transformação do DataFrame ods_avaliacao concluída com sucesso.
+2024-09-19 11:44:03,951 - INFO - Transformação do DataFrame ods_operacao concluída com sucesso.
+2024-09-19 11:44:05,532 - INFO - Fusão dos DataFrames para base final de informática concluída com sucesso.
+2024-09-19 11:44:07,647 - INFO - Arquivos CSV gerados com sucesso.
