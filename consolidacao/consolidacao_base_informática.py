@@ -7,7 +7,7 @@ from datetime import datetime
 
 def configurar_logging(log_file="consolidacao_base_informatica.log"):
     """
-    Configura o sistema de logging para registrar mensagens em um arquivo e na saída padrão.
+    Configura o logging para registrar mensagens no arquivo e no console.
     """
     logging.basicConfig(
         level=logging.INFO,
@@ -20,13 +20,15 @@ def configurar_logging(log_file="consolidacao_base_informatica.log"):
 
 def selecionar_pasta():
     """
-    Abre uma caixa de diálogo para selecionar uma pasta e retorna o caminho da pasta selecionada.
+    Abre a janela para selecionar uma pasta e retorna o caminho da pasta selecionada.
     """
     root = tk.Tk()
     root.withdraw()
     pasta_selecionada = filedialog.askdirectory(title="Selecione a pasta com os arquivos Excel")
     if not pasta_selecionada:
         logging.warning("Nenhuma pasta foi selecionada.")
+    else:
+        logging.info(f"Pasta selecionada: {pasta_selecionada}")
     return pasta_selecionada
 
 def extrair_data_do_nome(arquivo):
@@ -115,13 +117,11 @@ def consolidacao_ods(diretorio, sheet_name):
     """
     lista_dfs = []
     contador_arquivos = 0
-
     expected_columns = get_expected_columns(sheet_name)
 
     for arquivo in os.listdir(diretorio):
         if 'CH_Extract_ODS' in arquivo and arquivo.endswith(('.xlsx', '.xls', '.xlsb')):
             caminho_arquivo = os.path.join(diretorio, arquivo)
-            
             try:
                 df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name)
                 data = extrair_data_do_nome(arquivo)
@@ -131,21 +131,21 @@ def consolidacao_ods(diretorio, sheet_name):
 
                 df['DATA'] = data
 
-                # Reordenar as colunas conforme esperado
+                # Reorganiza as colunas conforme esperado
                 if expected_columns:
                     for col in expected_columns:
                         if col not in df.columns:
                             df[col] = None  # Adiciona colunas faltantes com valor nulo
-                    df = df[expected_columns]  # Reordena as colunas conforme a lista
+                    df = df[expected_columns]  # Reordena conforme esperado
 
                 lista_dfs.append(df)
                 contador_arquivos += 1
                 logging.info(f"Arquivo consolidado com sucesso: {caminho_arquivo}")
-            except ValueError as ve:
+            except ValueError:
                 logging.warning(f"Planilha '{sheet_name}' não encontrada no arquivo {caminho_arquivo}. Pulando este arquivo.")
             except Exception as e:
-                logging.exception(f"Erro inesperado ao processar o arquivo {caminho_arquivo}: {e}")
-    
+                logging.exception(f"Erro ao processar o arquivo {caminho_arquivo}: {e}")
+
     if lista_dfs:
         df_consolidado = pd.concat(lista_dfs, ignore_index=True)
         logging.info(f"Total de arquivos consolidados para {sheet_name}: {contador_arquivos}")
@@ -156,13 +156,13 @@ def consolidacao_ods(diretorio, sheet_name):
 
 def main():
     configurar_logging()
-    
+
     diretorio = selecionar_pasta()
-    
+
     if not diretorio:
         logging.error("Processo encerrado: Nenhuma pasta foi selecionada.")
         return
-    
+
     sheets = ["(1) Entidade CONTRATO", "(2) Entidade INTERVENIENTE", "(8) Entidade AVALIACAO", "(9) Entidade OPERACAO"]
     dfs_consolidados = {}
 
@@ -173,10 +173,10 @@ def main():
             logging.info(f"Consolidação concluída para a planilha: {sheet_name}")
         else:
             logging.warning(f"Nenhum dado consolidado para a planilha: {sheet_name}")
-    
+
     output_directory = "C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/01. Dados Consolidados/01. ODS"
     os.makedirs(output_directory, exist_ok=True)
-    
+
     for sheet_name, df in dfs_consolidados.items():
         output_path = os.path.join(output_directory, f"{sheet_name}_consolidado.csv")
         try:

@@ -1,5 +1,5 @@
-import pandas as pd
 import os
+import pandas as pd
 import logging
 
 def configurar_logging(log_file="processamento_contabilidade.log"):
@@ -26,6 +26,8 @@ def transform_carteira(carteira):
     - pd.DataFrame: DataFrame transformado.
     """
     try:
+        logging.info("Iniciando as transformações na carteira.")
+        
         # Renomeia colunas específicas
         carteira = carteira.rename(columns={
             'AMT Juro Corrido\nOn-BS': 'AMT Juro Corrido On-BS', 
@@ -33,56 +35,52 @@ def transform_carteira(carteira):
             'AMT Juro Vencido\nOff-BS': 'AMT Juro Vencido Off-BS'
         })
 
-        carteira_df = carteira.copy()
-
         # Conversão de colunas para tipos de dados apropriados
-        carteira_df['N. Proposta'] = carteira_df['N. Proposta'].astype(int)
-        carteira_df['AMT Empréstimo Original'] = pd.to_numeric(carteira_df['AMT Empréstimo Original'])
-        carteira_df['AMT Capital Utilizado'] = pd.to_numeric(carteira_df['AMT Capital Utilizado'])
-        carteira_df['AMT Capital em Dívida'] = pd.to_numeric(carteira_df['AMT Capital em Dívida'])
-        carteira_df['AMT Capital Vincendo'] = pd.to_numeric(carteira_df['AMT Capital Vincendo'])
-        carteira_df['AMT Capital Vencido'] = pd.to_numeric(carteira_df['AMT Capital Vencido'])
-        carteira_df['AMT Juro Corrido On-BS'] = pd.to_numeric(carteira_df['AMT Juro Corrido On-BS'])
-        carteira_df['AMT Juro Vencido On-BS'] = pd.to_numeric(carteira_df['AMT Juro Vencido On-BS'])
-        carteira_df['B/S Adj D Cred C P&L'] = pd.to_numeric(carteira_df['B/S Adj D Cred C P&L'])
-        carteira_df['P&L - NIM'] = pd.to_numeric(carteira_df['P&L - NIM'])
+        carteira['N. Proposta'] = carteira['N. Proposta'].astype(int)
+        carteira['AMT Empréstimo Original'] = pd.to_numeric(carteira['AMT Empréstimo Original'])
+        carteira['AMT Capital Utilizado'] = pd.to_numeric(carteira['AMT Capital Utilizado'])
+        carteira['AMT Capital em Dívida'] = pd.to_numeric(carteira['AMT Capital em Dívida'])
+        carteira['AMT Capital Vincendo'] = pd.to_numeric(carteira['AMT Capital Vincendo'])
+        carteira['AMT Capital Vencido'] = pd.to_numeric(carteira['AMT Capital Vencido'])
+        carteira['AMT Juro Corrido On-BS'] = pd.to_numeric(carteira['AMT Juro Corrido On-BS'])
+        carteira['AMT Juro Vencido On-BS'] = pd.to_numeric(carteira['AMT Juro Vencido On-BS'])
+        carteira['B/S Adj D Cred C P&L'] = pd.to_numeric(carteira['B/S Adj D Cred C P&L'])
+        carteira['P&L - NIM'] = pd.to_numeric(carteira['P&L - NIM'])
 
-        carteira_df = carteira_df.sort_values(by=['N. Contrato', 'Data'])
+        # Ordenação por contrato e data
+        carteira = carteira.sort_values(by=['N. Contrato', 'Data'])
 
-        carteira_df['AMT Juro Corrido On-BS'] = carteira_df['AMT Juro Corrido On-BS'].fillna(0)
-        carteira_df['AMT Juro Corrido On-BS_M-1'] = carteira_df.groupby('N. Contrato')['AMT Juro Corrido On-BS'].shift().fillna(0)
-        carteira_df['AMT Juro Corrido Dif'] = carteira_df['AMT Juro Corrido On-BS_M-1'] - carteira_df['AMT Juro Corrido On-BS']  
+        # Cálculo de diferenças entre meses anteriores
+        carteira['AMT Juro Corrido On-BS'] = carteira['AMT Juro Corrido On-BS'].fillna(0)
+        carteira['AMT Juro Corrido On-BS_M-1'] = carteira.groupby('N. Contrato')['AMT Juro Corrido On-BS'].shift().fillna(0)
+        carteira['AMT Juro Corrido Dif'] = carteira['AMT Juro Corrido On-BS_M-1'] - carteira['AMT Juro Corrido On-BS']  
 
-        carteira_df['AMT Juro Vencido On-BS'] = carteira_df['AMT Juro Vencido On-BS'].fillna(0)
-        carteira_df['AMT Juro Vencido On-BS_M-1'] = carteira_df.groupby('N. Contrato')['AMT Juro Vencido On-BS'].shift().fillna(0)
-        carteira_df['AMT Juro Vencido Dif'] =  carteira_df['AMT Juro Vencido On-BS_M-1'] - carteira_df['AMT Juro Vencido On-BS']
+        carteira['AMT Juro Vencido On-BS'] = carteira['AMT Juro Vencido On-BS'].fillna(0)
+        carteira['AMT Juro Vencido On-BS_M-1'] = carteira.groupby('N. Contrato')['AMT Juro Vencido On-BS'].shift().fillna(0)
+        carteira['AMT Juro Vencido Dif'] =  carteira['AMT Juro Vencido On-BS_M-1'] - carteira['AMT Juro Vencido On-BS']
 
-        carteira_df['B/S Adj D Cred C P&L'] = carteira_df['B/S Adj D Cred C P&L'].fillna(0)
-        carteira_df['B/S Adj D Cred C P&L_M-1'] = carteira_df.groupby('N. Contrato')['B/S Adj D Cred C P&L'].shift().fillna(0)
-        carteira_df['B/S Adj D Cred C P&L_Dif'] = carteira_df['B/S Adj D Cred C P&L_M-1'] - carteira_df['B/S Adj D Cred C P&L']
+        carteira['B/S Adj D Cred C P&L'] = carteira['B/S Adj D Cred C P&L'].fillna(0)
+        carteira['B/S Adj D Cred C P&L_M-1'] = carteira.groupby('N. Contrato')['B/S Adj D Cred C P&L'].shift().fillna(0)
+        carteira['B/S Adj D Cred C P&L_Dif'] = carteira['B/S Adj D Cred C P&L_M-1'] - carteira['B/S Adj D Cred C P&L']
 
-        carteira_df['P&L - NIM'] = carteira_df['P&L - NIM'].fillna(0)
-        carteira_df['P&L - NIM_M-1'] = carteira_df.groupby('N. Contrato')['P&L - NIM'].shift().fillna(0)
-        carteira_df['P&L - NIM_Dif'] =  carteira_df['P&L - NIM_M-1'] - carteira_df['P&L - NIM']
+        carteira['P&L - NIM'] = carteira['P&L - NIM'].fillna(0)
+        carteira['P&L - NIM_M-1'] = carteira.groupby('N. Contrato')['P&L - NIM'].shift().fillna(0)
+        carteira['P&L - NIM_Dif'] =  carteira['P&L - NIM_M-1'] - carteira['P&L - NIM']
 
-        carteira_df['B/S Adj D P&L / C B/S'] = carteira_df['B/S Adj D P&L / C B/S'].fillna(0)
-        carteira_df['B/S Adj D P&L / C B/S_M-1'] = carteira_df.groupby('N. Contrato')['B/S Adj D P&L / C B/S'].shift().fillna(0)
-        carteira_df['B/S Adj D P&L / C B/S_Dif'] = carteira_df['B/S Adj D P&L / C B/S'] - carteira_df['B/S Adj D P&L / C B/S_M-1']
- 
-        carteira_df = carteira_df[['N. Proposta', 'N. Contrato', 'Data', 'Branch ID', 'Conta Cliente', 
-                                   'DT Escritura' , 'AMT Empréstimo Original', 'AMT Capital Utilizado', 'AMT Capital em Dívida',
-                                   'AMT Capital Vincendo', 'AMT Capital Vencido', 'AMT Juro Corrido', 'AMT Juro Vencido', 
-                                   'AMT Juro Mora Vencido', 'AMT Liquidação Antec Acum', 'AMT Avaliação Colateral', 'AMT Escriturado', 
-                                   'AMT Juro Corrido On-BS', 'AMT Juro Vencido On-BS', 'AMT Juro Vencido Off-BS' , 'AMT Com.Dif #3400001000',
-                                   'AMT Com.Dif #3400001100', 'AMT Com.Dif #3400001200', 'AMT Com.Dif #3400001300', 'AMT Com.Dif #3400001400',
-                                   'AMT Com.Dif #3400001500', 'AMT Com.Dif #3400001600', 'AMT Com.Dif #3400001700', 'AMT Com.Dif #3400001800',
-                                   'AMT Com.Dif #3400001900', 'AMT Com.Dif #3400002000', 'AMT Com.Dif #3400002100', 'AMT Com.Dif #3400003000',
-                                   'AMT Com.Dif #3400003001', 'AMT Com.Dif #3400004000', 'AMT Com.Dif #5301001000', 'AMT Com.Dif #5301001100',
-                                   'AMT Com.Dif #5301001200', 'AMT Com.Dif #5301001300', 'AMT Com.Dif #5301001400', 'AMT Juro Corrido On-BS_M-1',
-                                   'AMT Juro Corrido Dif', 'B/S Adj D Cred C P&L', 'B/S Adj D Cred C P&L_M-1', 'P&L - NIM', 'P&L - NIM_M-1',
-                                   'AMT Juro Vencido Dif', 'B/S Adj D Cred C P&L_Dif', 'P&L - NIM_Dif', 'B/S Adj D P&L / C B/S', 'B/S Adj D P&L / C B/S_M-1', 
-                                   'B/S Adj D P&L / C B/S_Dif']]
+        carteira['B/S Adj D P&L / C B/S'] = carteira['B/S Adj D P&L / C B/S'].fillna(0)
+        carteira['B/S Adj D P&L / C B/S_M-1'] = carteira.groupby('N. Contrato')['B/S Adj D P&L / C B/S'].shift().fillna(0)
+        carteira['B/S Adj D P&L / C B/S_Dif'] = carteira['B/S Adj D P&L / C B/S'] - carteira['B/S Adj D P&L / C B/S_M-1']
 
+        # Seleciona e organiza as colunas de interesse
+        carteira_df = carteira[['N. Proposta', 'N. Contrato', 'Data', 'Branch ID', 'Conta Cliente', 
+                                'DT Escritura', 'AMT Empréstimo Original', 'AMT Capital Utilizado', 'AMT Capital em Dívida',
+                                'AMT Capital Vincendo', 'AMT Capital Vencido', 'AMT Juro Corrido', 'AMT Juro Vencido', 
+                                'AMT Juro Mora Vencido', 'AMT Liquidação Antec Acum', 'AMT Avaliação Colateral', 'AMT Escriturado', 
+                                'AMT Juro Corrido On-BS', 'AMT Juro Vencido On-BS', 'AMT Juro Vencido Off-BS', 
+                                'AMT Juro Corrido On-BS_M-1', 'AMT Juro Corrido Dif', 'B/S Adj D Cred C P&L', 
+                                'B/S Adj D Cred C P&L_M-1', 'P&L - NIM', 'P&L - NIM_M-1', 'AMT Juro Vencido Dif', 
+                                'B/S Adj D Cred C P&L_Dif', 'P&L - NIM_Dif', 'B/S Adj D P&L / C B/S', 
+                                'B/S Adj D P&L / C B/S_M-1', 'B/S Adj D P&L / C B/S_Dif']]
         
         logging.info("Transformação da carteira concluída com sucesso.")
         return carteira_df
@@ -97,10 +95,8 @@ def main():
     # Configurar o logging
     configurar_logging()
     
-    # Diretórios de entrada separados para cada arquivo
+    # Diretório de entrada e saída
     diretorio_carteira = r'C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\01. Dados Consolidados\02. Contabilidade'
-
-    # Diretório de saída (o mesmo para todos os arquivos transformados)
     output_dir = r'C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados\02. Contabilidade'
     os.makedirs(output_dir, exist_ok=True)
 
@@ -110,13 +106,16 @@ def main():
         if os.path.exists(carteira_path):
             carteira = pd.read_csv(carteira_path)
             logging.info(f"Arquivo Carteira carregado com sucesso: {carteira_path}")
+            
+            # Aplicar as transformações na carteira
             carteira_df = transform_carteira(carteira)
+            
+            # Salvar o arquivo transformado
             output_carteira = os.path.join(output_dir, 'Carteira_Contabilidade_Transformado.csv')
             carteira_df.to_csv(output_carteira, index=False, encoding='UTF-8-sig')
             logging.info(f"Arquivo transformado e salvo em: {output_carteira}")
         else:
             logging.error(f"Arquivo Carteira não encontrado: {carteira_path}")
-
     except Exception as e:
         logging.exception(f"Erro inesperado no processo: {e}")
 

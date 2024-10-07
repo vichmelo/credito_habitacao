@@ -6,10 +6,7 @@ import logging
 
 def configurar_logging(log_file="consolidacao_gl_extract_ano.log"):
     """
-    Configura o sistema de logging para registrar mensagens em um arquivo e na saída padrão.
-
-    Parâmetros:
-    - log_file (str): Nome do arquivo de log. O padrão é "consolidacao_gl_extract_ytd.log".
+    Configura o logging para registrar mensagens no arquivo e no console.
     """
     logging.basicConfig(
         level=logging.INFO,
@@ -22,32 +19,25 @@ def configurar_logging(log_file="consolidacao_gl_extract_ano.log"):
 
 def selecionar_diretorio():
     """
-    Abre uma caixa de diálogo para selecionar um diretório e retorna o caminho do diretório selecionado.
-
-    Retorna:
-    - str: Caminho do diretório selecionado ou None se nenhum diretório for selecionado.
+    Abre a janela para selecionar um diretório e retorna o caminho do diretório selecionado.
     """
     root = tk.Tk()
     root.withdraw()  # Oculta a janela principal do Tkinter
     diretorio_selecionado = filedialog.askdirectory(title="Selecione o diretório contendo os arquivos Feather")
     if not diretorio_selecionado:
         logging.warning("Nenhum diretório foi selecionado.")
+    else:
+        logging.info(f"Diretório selecionado: {diretorio_selecionado}")
     return diretorio_selecionado
 
 def consolidar_arquivos_feather(diretorio):
     """
     Consolida todos os arquivos Feather no formato 'GL_Extract_AAAA.MM.feather' em um único DataFrame.
-
-    Parâmetros:
-    - diretorio (str): Caminho para o diretório contendo os arquivos Feather.
-
-    Retorna:
-    - pd.DataFrame: DataFrame consolidado.
     """
     arquivos_feather = [f for f in os.listdir(diretorio) if f.startswith("GL_Extract_") and f.endswith(".feather")]
     
     if not arquivos_feather:
-        logging.error("Nenhum arquivo Feather com o padrão 'GL_Extract_AAAA.MM.feather' foi encontrado no diretório.")
+        logging.error("Nenhum arquivo Feather com o padrão 'GL_Extract_AAAA.MM.feather' foi encontrado.")
         raise FileNotFoundError("Nenhum arquivo Feather encontrado no diretório.")
 
     dataframes = []
@@ -62,7 +52,7 @@ def consolidar_arquivos_feather(diretorio):
             logging.error(f"Erro ao carregar o arquivo {arquivo}: {e}")
             raise
 
-    # Concatenar todos os DataFrames em um único DataFrame consolidado
+    # Consolida os DataFrames em um único DataFrame
     df_consolidado = pd.concat(dataframes, ignore_index=True)
     logging.info("Consolidação dos arquivos Feather concluída.")
     
@@ -71,10 +61,6 @@ def consolidar_arquivos_feather(diretorio):
 def salvar_dataframe(df, output_directory):
     """
     Salva o DataFrame consolidado em arquivos Feather e CSV.
-
-    Parâmetros:
-    - df (pd.DataFrame): O DataFrame consolidado.
-    - output_directory (str): O caminho do diretório onde salvar os arquivos.
     """
     nome_arquivo = "GL_Extract_Consolidado"
     
@@ -84,7 +70,7 @@ def salvar_dataframe(df, output_directory):
     try:
         df.to_feather(output_path_feather)
         df.to_csv(output_path_csv, encoding='UTF-8-sig', index=False)
-        logging.info(f"Arquivos consolidados e salvos com sucesso: {output_path_feather} e {output_path_csv}")
+        logging.info(f"Arquivos salvos com sucesso: {output_path_feather} e {output_path_csv}")
     except Exception as e:
         logging.error(f"Erro ao salvar os arquivos: {e}")
         raise
@@ -96,13 +82,15 @@ def main():
     
     if diretorio_selecionado:
         try:
+            # Consolidação dos arquivos Feather
             df_consolidado = consolidar_arquivos_feather(diretorio_selecionado)
             
+            # Salva os arquivos consolidados
             salvar_dataframe(df_consolidado, diretorio_selecionado)
         except Exception as e:
             logging.error(f"Erro ao consolidar ou processar os arquivos: {e}")
     else:
-        logging.warning("Nenhum diretório selecionado.")
+        logging.warning("Nenhum diretório foi selecionado.")
 
 if __name__ == "__main__":
     main()

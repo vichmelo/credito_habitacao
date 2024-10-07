@@ -11,14 +11,11 @@ import logging
 app_path = Path(__file__).parents[1]
 sys.path.append(str(app_path))
 
-from general_database.general_database import id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo
+from general_database.general_database import id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo, duration
 
 def configurar_logging(log_file="processamento_base_informatica.log"):
     """
     Configura o sistema de logging para registrar mensagens em um arquivo e na saída padrão.
-
-    Parâmetros:
-    - log_file (str): Nome do arquivo de log. O padrão é "transformacao_ods.log".
     """
     logging.basicConfig(
         level=logging.INFO,
@@ -32,31 +29,22 @@ def configurar_logging(log_file="processamento_base_informatica.log"):
 def detect_encoding(dataframe):
     """
     Detecta o encoding de um DataFrame convertido em string CSV temporária.
-
-    Parâmetros:
-    - dataframe (pd.DataFrame): O DataFrame a ser analisado.
-
-    Retorna:
-    - str: O encoding detectado.
     """
-    csv_data = dataframe.to_csv(index=False).encode('utf-8')
-    result = ch.detect(csv_data)
-    encoding = result['encoding']
-    confidence = result['confidence']
-    
-    logging.info(f"Encoding detectado: {encoding} com confiança de {confidence*100:.2f}%")
-    return encoding
+    try:
+        csv_data = dataframe.to_csv(index=False).encode('utf-8')
+        result = ch.detect(csv_data)
+        encoding = result['encoding']
+        confidence = result['confidence']
+        
+        logging.info(f"Encoding detectado: {encoding} com confiança de {confidence*100:.2f}%")
+        return encoding
+    except Exception as e:
+        logging.error("Erro ao detectar encoding.")
+        raise
 
 def transform_ods_contrato(ods_contrato, id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo):
     """
-    Aplica transformações específicas ao DataFrame 'ods_contrato' e realiza merges com outras tabelas.
-
-    Parâmetros:
-    - ods_contrato (pd.DataFrame): DataFrame original.
-    - id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo (pd.DataFrame): DataFrames para merge.
-
-    Retorna:
-    - pd.DataFrame: DataFrame transformado e mesclado.
+    Aplica transformações ao DataFrame 'ods_contrato' e realiza merges com outras tabelas.
     """
     try:
         ods_contrato_df = ods_contrato.copy()
@@ -64,7 +52,7 @@ def transform_ods_contrato(ods_contrato, id_tipo_taxa_juro, id_fin_cred, id_fin_
         # Seleção e conversão de colunas
         ods_contrato_df = ods_contrato_df[[
             'DT_INFORMATION', 'IDCONTRATOCH', 'DATAFORMALIZACAO', 'DATAVENCIMENTO', 'IDTIPOTAXAJURO',
-            'IDPROTOCOLO', 'DURACAOTXFIXA', 'CODIGOBALCAO', 'MONTANTEORIGINALEMPRESTIMO', 'MONTANTECAPITALUTILIZADO',
+            'IDPROTOCOLO', 'DURACAOTXFIXA', 'DATAULTIMAREVISAO', 'CODIGOBALCAO', 'MONTANTEORIGINALEMPRESTIMO', 'MONTANTECAPITALUTILIZADO',
             'IDFINALIDADEPRODUTO', 'IDFINALIDADECREDITO', 'PRAZOCONTRATADO', 'TANATUAL', 'SPREADATUAL', 'CAPITALEMDIVIDA',
             'DATA'
         ]]
@@ -101,11 +89,17 @@ def transform_ods_contrato(ods_contrato, id_tipo_taxa_juro, id_fin_cred, id_fin_
         values = [25, 30, 35, 40]
         ods_contrato_df['MATURIDADE BUCKETS'] = np.select(conditions, values, default=0)
 
+        ods_contrato_df['MATURIDADE BUCKETS'] = ods_contrato_df['MATURIDADE BUCKETS'].astype(str)
+        ods_contrato_df['DURACAOTXFIXA'] = ods_contrato_df['DURACAOTXFIXA'].astype(str)
+
+        ods_contrato_df['ID_DURATION'] = ods_contrato_df['DURACAOTXFIXA'] + ods_contrato_df['MATURIDADE BUCKETS']
+
         # Mesclando com outros DataFrames
         merged_df = pd.merge(ods_contrato_df, id_tipo_taxa_juro, on='IDTIPOTAXAJURO', how='left')
         merged_df = pd.merge(merged_df, id_fin_cred, on='IDFINALIDADECREDITO', how='left')
         merged_df = pd.merge(merged_df, id_fin_prod, on='IDFINALIDADEPRODUTO', how='left')
         merged_df = pd.merge(merged_df, protocolo, on='IDPROTOCOLO', how='left')
+        merged_df = pd.merge(merged_df, duration, on='ID_DURATION', how='left')
 
         merged_df['EURIBOR'] = np.where(merged_df['TAXA'] == 'Variável', merged_df['TANATUAL'] - merged_df['SPREADATUAL'], 0)
 
@@ -123,12 +117,6 @@ def transform_ods_contrato(ods_contrato, id_tipo_taxa_juro, id_fin_cred, id_fin_
 def transform_ods_interveniente(ods_interveniente):
     """
     Aplica transformações específicas ao DataFrame 'ods_interveniente'.
-
-    Parâmetros:
-    - ods_interveniente (pd.DataFrame): DataFrame original.
-
-    Retorna:
-    - pd.DataFrame: DataFrame transformado.
     """
     try:
         ods_interveniente_df = ods_interveniente[['DT_INFORMATION', 'IDCONTRATOCH', 'NIFINTERVENIENTE', 'IDTIPOINTERVENIENTE', 'DATA']].copy()
@@ -145,12 +133,6 @@ def transform_ods_interveniente(ods_interveniente):
 def transform_ods_avaliacao(ods_avaliacao):
     """
     Aplica transformações específicas ao DataFrame 'ods_avaliacao'.
-
-    Parâmetros:
-    - ods_avaliacao (pd.DataFrame): DataFrame original.
-
-    Retorna:
-    - pd.DataFrame: DataFrame transformado.
     """
     try:
         ods_avaliacao_df = ods_avaliacao[['IDCONTRATOCH', 'DT_INFORMATION', 'DTAVALIACAO', 'VALORAVALIACAO', 'DATA']].copy()
@@ -171,12 +153,6 @@ def transform_ods_avaliacao(ods_avaliacao):
 def transform_ods_operacao(ods_operacao):
     """
     Aplica transformações específicas ao DataFrame 'ods_operacao'.
-
-    Parâmetros:
-    - ods_operacao (pd.DataFrame): DataFrame original.
-
-    Retorna:
-    - pd.DataFrame: DataFrame transformado.
     """
     try:
         ods_operacao_df = ods_operacao[['IDCONTRATOCH', 'MNTOPERACAO', 'DATA']].copy()
@@ -192,12 +168,6 @@ def transform_ods_operacao(ods_operacao):
 def merged_base_informatica(ods_contrato_df, ods_interveniente_df, ods_avaliacao_df, ods_operacao_df):
     """
     Realiza a fusão dos DataFrames transformados para criar a base final de informática.
-
-    Parâmetros:
-    - ods_contrato_df, ods_interveniente_df, ods_avaliacao_df, ods_operacao_df (pd.DataFrame): DataFrames transformados.
-
-    Retorna:
-    - pd.DataFrame: DataFrame final mesclado.
     """
     try:
         merged_df = pd.merge(ods_contrato_df, ods_interveniente_df, on=['IDCONTRATOCH', 'DATA'], how='left')
@@ -241,17 +211,22 @@ def main():
     
     try:
         if os.path.exists(diretorio):
+            # Carregar DataFrames
             ods_contrato = pd.read_csv(os.path.join(diretorio, '(1) Entidade CONTRATO_consolidado.csv'))
             ods_interveniente = pd.read_csv(os.path.join(diretorio, '(2) Entidade INTERVENIENTE_consolidado.csv'))
             ods_avaliacao = pd.read_csv(os.path.join(diretorio, '(8) Entidade AVALIACAO_consolidado.csv'))
             ods_operacao = pd.read_csv(os.path.join(diretorio, '(9) Entidade OPERACAO_consolidado.csv'))
 
+            # Aplicar as transformações
             ods_contrato_df = transform_ods_contrato(ods_contrato, id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo)
             ods_interveniente_df = transform_ods_interveniente(ods_interveniente)
             ods_avaliacao_df = transform_ods_avaliacao(ods_avaliacao)
             ods_operacao_df = transform_ods_operacao(ods_operacao)
+            
+            # Fazer a fusão final
             merged_df = merged_base_informatica(ods_contrato_df, ods_interveniente_df, ods_avaliacao_df, ods_operacao_df)
 
+            # Salvar os arquivos
             output_dir = r'C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados\01. ODS'
             os.makedirs(output_dir, exist_ok=True)
 

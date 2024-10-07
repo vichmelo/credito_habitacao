@@ -6,7 +6,7 @@ import logging
 
 def configurar_logging(log_file="consolidacao_balancete.log"):
     """
-    Configura o sistema de logging para registrar mensagens em um arquivo e na saída padrão.
+    Configura o logging para registrar mensagens no arquivo e no console.
     """
     logging.basicConfig(
         level=logging.INFO,
@@ -19,25 +19,20 @@ def configurar_logging(log_file="consolidacao_balancete.log"):
 
 def selecionar_pasta():
     """
-    Abre uma caixa de diálogo para selecionar uma pasta e retorna o caminho da pasta selecionada.
+    Abre uma janela para o usuário selecionar uma pasta e retorna o caminho selecionado.
     """
     root = tk.Tk()
     root.withdraw()  # Oculta a janela principal do Tkinter
     pasta_selecionada = filedialog.askdirectory(title="Selecione a pasta com os arquivos Excel")
     if not pasta_selecionada:
         logging.warning("Nenhuma pasta foi selecionada.")
+    else:
+        logging.info(f"Pasta selecionada: {pasta_selecionada}")
     return pasta_selecionada
 
 def consolidacao_bancoctt(diretorio):
     """
-    Consolida arquivos Excel em um único DataFrame, adicionando uma coluna 'data' baseada na quarta coluna,
-    e renomeando a quarta coluna para 'Valor'.
-
-    Parâmetros:
-    - diretorio (str): Caminho para o diretório onde os arquivos estão localizados.
-
-    Retorna:
-    - pd.DataFrame: DataFrame consolidado com todos os dados da planilha "Balancete".
+    Consolida arquivos Excel da planilha 'Balancete', cria coluna 'Data' e renomeia a quarta coluna como 'Valor'.
     """
     lista_dfs = []
     contador_arquivos = 0  # Contador de arquivos consolidados
@@ -47,26 +42,21 @@ def consolidacao_bancoctt(diretorio):
             caminho_arquivo = os.path.join(diretorio, arquivo)
             
             try:
-                # Lendo a planilha 'Balancete' e configurando header na linha 3 (índice 2)
+                # Lê a planilha 'Balancete' com header na linha 3
                 df = pd.read_excel(caminho_arquivo, sheet_name="Balancete", header=2)
                 
-                # Identificar a quarta coluna (índice 3)
-                coluna_data = df.columns[3]  # A quarta coluna é sempre a de índice 3
-                
-                # Criar a coluna 'data' e preencher com o nome da quarta coluna
+                # A quarta coluna é usada como 'Data' e renomeada para 'Valor'
+                coluna_data = df.columns[3]
                 df['Data'] = coluna_data
-                
-                # Renomear a quarta coluna para 'Valor'
                 df.rename(columns={coluna_data: 'Valor'}, inplace=True)
                 
-                # Filtrar linhas onde a coluna 'Acct Type' não é vazia (nem NaN)
+                # Filtra as linhas onde 'Acct Type' não é vazia
                 df_filtrado = df[df['Acct Type'].notna() & (df['Acct Type'] != '')]
                 
-                # Se houver dados após o filtro, adiciona à lista
                 if not df_filtrado.empty:
                     lista_dfs.append(df_filtrado)
                     contador_arquivos += 1
-                    logging.info(f"Arquivo consolidado com sucesso: {caminho_arquivo}")
+                    logging.info(f"Arquivo consolidado: {caminho_arquivo}")
                 else:
                     logging.warning(f"Nenhuma linha válida em 'Acct Type' no arquivo: {caminho_arquivo}")
                     
@@ -78,7 +68,7 @@ def consolidacao_bancoctt(diretorio):
         logging.info(f"Total de arquivos consolidados: {contador_arquivos}")
         return df_consolidado
     else:
-        logging.warning(f"Nenhum arquivo foi consolidado.")
+        logging.warning("Nenhum arquivo foi consolidado.")
         return pd.DataFrame()
 
 def main():
@@ -90,7 +80,7 @@ def main():
         logging.error("Processo encerrado: Nenhuma pasta foi selecionada.")
         return
     
-    # Consolidação dos arquivos na planilha 'Balancete'
+    # Consolida arquivos da pasta selecionada
     df_consolidado = consolidacao_bancoctt(diretorio)
     
     if not df_consolidado.empty:
@@ -100,11 +90,11 @@ def main():
         
         try:
             df_consolidado.to_csv(output_path, index=False)
-            logging.info(f"Arquivo salvo: {output_path}")
+            logging.info(f"Arquivo salvo com sucesso: {output_path}")
         except Exception as e:
             logging.error(f"Erro ao salvar o arquivo {output_path}: {e}")
     else:
-        logging.warning("Nenhum dado foi consolidado.")
+        logging.warning("Nenhum dado foi consolidado, arquivo não salvo.")
 
 if __name__ == "__main__":
     main()

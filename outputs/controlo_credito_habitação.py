@@ -10,7 +10,7 @@ sys.path.append(str(app_path))
 
 from general_database.general_database import id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo
 
-def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_df: pd.DataFrame, gl_extract_df: pd.DataFrame, base_imparidade: pd.DataFrame):
+def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_df: pd.DataFrame, gl_extract_df: pd.DataFrame, base_imparidade: pd.DataFrame, ftp_historico: pd.DataFrame, swap_historico: pd.DataFrame):
     """
     Função que realiza o cruzamento dos dados.
     
@@ -30,12 +30,36 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
     merged_ctb = pd.merge(base_informatica_df, base_contabilidade_df, left_on=['IDCONTRATOCH', 'DATA'], right_on=['N. Contrato', 'Data'], how='outer', indicator=False)
     merged_ctb = merged_ctb.drop(columns={'N. Contrato', 'Data'})
 
+    # Converter a coluna 'DATA' para o tipo datetime
+    merged_ctb['DATA'] = pd.to_datetime(merged_ctb['DATA'], format='%Y-%m-%d')
+    merged_ctb['DATAFORMALIZACAO'] = pd.to_datetime(merged_ctb['DATAFORMALIZACAO'])
+    merged_ctb['DATAULTIMAREVISAO'] = pd.to_datetime(merged_ctb['DATAULTIMAREVISAO'])
+    
+    # Criar a nova coluna 'DATAMESANTERIOR', ajustando diretamente para o último dia do mês anterior
+    merged_ctb['DATAMESANTERIORSOURCE'] = merged_ctb['DATA'] - pd.offsets.MonthEnd(1)
+    merged_ctb['DATAMESANTERIORFORMALIZAÇÃO'] = merged_ctb['DATAFORMALIZACAO'] - pd.offsets.MonthEnd(1)
+    merged_ctb['DATAREVISÃO'] = merged_ctb['DATAULTIMAREVISAO'] + pd.offsets.MonthEnd(0) 
+    merged_ctb['DATAFTPSWAP'] = merged_ctb['DATAREVISÃO'].fillna(merged_ctb['DATAMESANTERIORFORMALIZAÇÃO'])
+    
+    # Limitar essa condição a taxa variavel, vamos buscar a primeira posição. 
+    merged_ctb['DATAMESANTERIORFINAL'] = np.where(merged_ctb['TAXA'] == 'Variável', merged_ctb['DATAMESANTERIORFORMALIZAÇÃO'], merged_ctb['DATAFTPSWAP'])
+
+    # Pros mistos ou fixos buscar a última data 
+
     merged_ctb['DATA'] = pd.to_datetime(merged_ctb['DATA'])
     merged_ctb['DATA'] = merged_ctb['DATA'].dt.strftime('%d/%m/%Y')    
 
+    merged_ctb['ID_FTP'] = merged_ctb['DATAMESANTERIORFINAL'].astype(str).str.cat(merged_ctb['MATURIDADE BUCKETS_x'].astype(str), sep='_')
+
+    merged_ctb['DURATION'] = merged_ctb['DURATION'].fillna(0)
+
+    merged_ctb['DURATION'] = merged_ctb['DURATION'].astype(int)
+
+    merged_ctb['ID_SWAP'] = merged_ctb['DATAFTPSWAP'].astype(str).str.cat(merged_ctb['DURATION'].astype(str), sep='_')
+    
     gl_extract_df = gl_extract_df.rename(columns={'IDCONTRATOCH':'IDCONTRATOCH_GL', 'DATA':'DATA_GL'})
         
-    merged_gl = pd.merge(merged_ctb, gl_extract_df, left_on=['IDCONTRATOCH','DATA'], right_on=['IDCONTRATOCH_GL','DATA_GL'], how='left', indicator=False)
+    merged_gl = pd.merge(merged_ctb, gl_extract_df, left_on=['IDCONTRATOCH','DATA'], right_on=['IDCONTRATOCH_GL','DATA_GL'], how='outer', indicator=False)
 
     # Criando a coluna 'ANGARIADOR' baseada nas condições
     # A quantidade total de contratos bate, porém a abertura entre 'Rede Lojas' e 'Imobiliárias' não bate devido a falta de histórico
@@ -102,7 +126,6 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
     merged_ang['6701001092_GL'] = merged_ang['6701001092_GL'].fillna(0) * -1 
     merged_ang['8138831000_GL'] = merged_ang['8138831000_GL'].fillna(0) * -1 
     
-
     merged_ang['8138843000_GL'] = merged_ang['8138843000_GL'].fillna(0) * -1
 
     merged_ang['JE - Juro'] = merged_ang['7904001080_GL'] + merged_ang['7904001081_GL'] + merged_ang['AMT Juro Corrido Dif'] + merged_ang['AMT Juro Vencido Dif'] + merged_ang['B/S Adj D Cred C P&L_Dif'] + merged_ang['P&L - NIM_Dif'] 
@@ -142,11 +165,36 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
 
     merged_imp['LTV'] = (merged_imp['LTV Exposição'] / merged_imp['VALORAVALIACAO']).fillna(0)
 
-    final_df = merged_imp.sort_values('IDCONTRATOCH')
+    # Identificar onde há uma alteração de taxa "SIM"
+    merged_imp['flag_alteracao'] = merged_imp['ALTERACAO_TAXA'] == 'SIM'
 
-    final_df = final_df.drop(columns={'DT_INFORMATION_y', 'index_GL', 'N. Proposta_y'})
+    # Criar uma coluna cumulativa dentro de cada grupo de contrato
+    merged_imp['DURACAO_NEW_TAXA'] = (
+        merged_imp.groupby('IDCONTRATOCH')['flag_alteracao']
+        .cumsum()
+        .where(merged_imp['flag_alteracao'].cumsum() > 0, 0)  # Manter 0 até encontrar o "SIM"
+        .astype(int)  # Converter para inteiros
+    )
 
-    final_df = final_df.rename(columns={'DT_INFORMATION_x':'DT_INFORMATION', 'N. Proposta_x':'N. Proposta', 'Dos quais:Imparidade On-balance': 'Imparidade On-balance', 'ANGARIADOR_x':'ANGARIADOR'})
+    merged_ftp = pd.merge(merged_imp, ftp_historico, on='ID_FTP', how='left', indicator=False)
+
+    merged_swap = pd.merge(merged_ftp, swap_historico, on='ID_SWAP', how='left', indicator=False)
+
+    merged_swap['EURIBOR'] = merged_swap['EURIBOR'] / 100
+
+    merged_swap['SPREADATUAL'] = merged_swap['SPREADATUAL'] / 100
+
+    merged_swap['TANATUAL'] = merged_swap['TANATUAL'] / 100
+
+    merged_swap['Euribor/SWAP'] = np.where(merged_swap['TAXA'] == 'Variável', merged_swap['EURIBOR'], merged_swap['Valor_y'])
+
+    merged_swap['Spread Comercial'] = np.where(merged_swap['TAXA'] == 'Variável', merged_swap['SPREADATUAL'] - merged_swap['Valor_x'], merged_swap['TANATUAL'] - merged_swap['Valor_y'] - (merged_swap['Valor_x'] + merged_swap['SPREADATUAL']))
+
+    final_df = merged_swap.sort_values('IDCONTRATOCH')
+
+    final_df = final_df.drop(columns={'DT_INFORMATION_y', 'index_GL', 'N. Proposta_y', 'DURACAOTXFIXA_y', 'MATURIDADE BUCKETS_y'})
+
+    final_df = final_df.rename(columns={'DT_INFORMATION_x':'DT_INFORMATION', 'N. Proposta_x':'N. Proposta', 'Dos quais:Imparidade On-balance': 'Imparidade On-balance', 'ANGARIADOR_x':'ANGARIADOR', 'Valor_y':'Taxa SWAP', 'Valor_x':'Taxa FTP'})
         
     return final_df
 
@@ -162,6 +210,8 @@ def main():
         base_contabilidade_path = processing_dir / '02. Contabilidade/Carteira_Contabilidade_Transformado.csv'
         gl_extract_path = processing_dir / '03. GL Extract/GL_Extract_Processado.csv'
         base_imparidade_path = processing_dir / '05. Imparidade/Consolidado_Imparidade_Credito.csv'
+        ftp_historico_path = processing_dir / '04. General Database/FTP_Histórico_transformado.csv'
+        swap_historico_path = processing_dir / '04. General Database/SWAP_Histórico_transformado.csv'
 
         if not all([base_informatica_path.exists(), base_contabilidade_path.exists(), gl_extract_path.exists(), base_imparidade_path.exists()]):
             print("Um ou mais arquivos de entrada não foram encontrados.")
@@ -172,9 +222,11 @@ def main():
         base_contabilidade = pd.read_csv(base_contabilidade_path, encoding='utf-8-sig')
         gl_extract = pd.read_csv(gl_extract_path, encoding='utf-8-sig')
         base_imparidade = pd.read_csv(base_imparidade_path, encoding='utf-8-sig')
+        ftp_historico = pd.read_csv(ftp_historico_path, encoding='utf-8-sig')
+        swap_historico = pd.read_csv(swap_historico_path, encoding='utf-8-sig')
 
         # Realizar a transformação e o cruzamento dos dados
-        controlo_ch_df = transform_controlo_ch(base_informatica, base_contabilidade, gl_extract, base_imparidade)
+        controlo_ch_df = transform_controlo_ch(base_informatica, base_contabilidade, gl_extract, base_imparidade, ftp_historico, swap_historico)
 
         # Verificar se o diretório de saída existe, se não, criar
         output_dir.mkdir(parents=True, exist_ok=True)

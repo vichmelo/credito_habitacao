@@ -30,6 +30,8 @@ def selecionar_diretorio():
     diretorio_selecionado = filedialog.askdirectory(title="Selecione o diretório de entrada")
     if not diretorio_selecionado:
         logging.warning("Nenhum diretório foi selecionado.")
+    else:
+        logging.info(f"Diretório selecionado: {diretorio_selecionado}")
     return diretorio_selecionado
 
 def carregar_arquivos_da_pasta(diretorio):

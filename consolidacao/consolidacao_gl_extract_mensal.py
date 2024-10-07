@@ -8,9 +8,6 @@ from datetime import datetime
 def configurar_logging(log_file="consolidacao_gl_extract_mes.log"):
     """
     Configura o sistema de logging para registrar mensagens em um arquivo e na saída padrão.
-
-    Parâmetros:
-    - log_file (str): Nome do arquivo de log. O padrão é "consolidacao_gl_extract.log".
     """
     logging.basicConfig(
         level=logging.INFO,
@@ -23,28 +20,20 @@ def configurar_logging(log_file="consolidacao_gl_extract_mes.log"):
 
 def selecionar_pasta():
     """
-    Abre uma caixa de diálogo para selecionar uma pasta e retorna o caminho da pasta selecionada.
-
-    Retorna:
-    - str: Caminho da pasta selecionada ou None se nenhuma pasta for selecionada.
+    Abre a janela para selecionar uma pasta e retorna o caminho da pasta selecionada.
     """
     root = tk.Tk()
     root.withdraw()  # Oculta a janela principal do Tkinter
     pasta_selecionada = filedialog.askdirectory(title="Selecione a pasta com os arquivos Excel")
     if not pasta_selecionada:
         logging.warning("Nenhuma pasta foi selecionada.")
+    else:
+        logging.info(f"Pasta selecionada: {pasta_selecionada}")
     return pasta_selecionada
 
 def extrair_data_do_diretorio(diretorio):
     """
     Extrai o ano e mês do nome do diretório e retorna uma data no formato '01/MM/YYYY'.
-
-    Parâmetros:
-    - diretorio (str): Nome do diretório no formato 'YYYY.MM'.
-
-    Retorna:
-    - datetime: Data no formato '01/MM/YYYY'.
-    - None: Se a data não puder ser extraída.
     """
     try:
         ano, mes = os.path.basename(diretorio).split('.')
@@ -59,13 +48,6 @@ def extrair_data_do_diretorio(diretorio):
 def consolidacao_gl_extract(diretorio_final):
     """
     Consolida todas as sheets que contenham 'GL_Extract' no nome em um único DataFrame.
-
-    Parâmetros:
-    - diretorio_final (str): Caminho para o diretório onde os arquivos Excel estão localizados.
-
-    Retorna:
-    - pd.DataFrame: DataFrame consolidado com todos os dados das planilhas que contenham 'GL_Extract' nos arquivos.
-    - datetime: Data extraída do nome do diretório ou None se não puder ser extraída.
     """
     lista_dfs = []
     contador_arquivos = 0
@@ -75,13 +57,13 @@ def consolidacao_gl_extract(diretorio_final):
     if data is None:
         return pd.DataFrame(), None
 
-    # Colunas que desejamos manter
+    # Colunas a serem mantidas
     colunas_desejadas = [
         'NOMINAL_CODE', 'NOMINAL_CODE Description', 'SAP_AMOUNT', 
         'EVENTO', 'EVENTO DESCRITIVO', 'PROCESSO', 'CONTRATO'
     ]
     
-    # Lista de NOMINAL_CODE que desejamos manter
+    # NOMINAL_CODE permitidos
     nominal_codes_permitidos = [
         7904001080, 8001001082, 8001001081, 8001001083, 8001001084, 8001001085,
         6701001081, 6701001082, 6701001083, 6701001084, 6701001085, 6701001086,
@@ -90,30 +72,32 @@ def consolidacao_gl_extract(diretorio_final):
         8138833000, 8138842000, 7904001081
     ]
     
+    # Processa os arquivos que começam com 'Rec_CH_' e terminam em Excel
     for arquivo in os.listdir(diretorio_final):
         if arquivo.startswith('Rec_CH_') and arquivo.endswith(('.xlsx', '.xls', '.xlsb')):
             caminho_arquivo = os.path.join(diretorio_final, arquivo)
             
             try:
-                # Obter os nomes de todas as sheets no arquivo
+                # Obtém os nomes das sheets do arquivo Excel
                 todas_sheets = pd.ExcelFile(caminho_arquivo).sheet_names
                 
-                # Filtrar para apenas as sheets que contêm 'GL_Extract'
+                # Filtra as sheets que contêm 'GL_Extract'
                 sheets_filtradas = [sheet for sheet in todas_sheets if 'GL_Extract' in sheet]
                 
-                # Lê as sheets filtradas do arquivo Excel
+                # Lê e processa as sheets filtradas
                 for sheet_name in sheets_filtradas:
                     df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name)
                     
-                    # Seleciona apenas as colunas desejadas
+                    # Seleciona as colunas desejadas
                     df = df[colunas_desejadas]
                     
                     # Filtra os NOMINAL_CODE permitidos
                     df = df[df['NOMINAL_CODE'].isin(nominal_codes_permitidos)]
                     
-                    # Adiciona a coluna DATA ao DataFrame com base no nome do diretório
+                    # Adiciona a coluna 'DATA' baseada no nome do diretório
                     df['DATA'] = data.strftime('%d/%m/%Y')
 
+                    # Converte a coluna 'CONTRATO' para string
                     df['CONTRATO'] = df['CONTRATO'].astype(str)
                     
                     lista_dfs.append(df)
@@ -141,7 +125,7 @@ def main():
         logging.error("Processo encerrado: Nenhuma pasta foi selecionada.")
         return
     
-    # Consolidar os arquivos para as sheets que contêm 'GL_Extract'
+    # Consolida os arquivos para as sheets que contêm 'GL_Extract'
     df_consolidado, data_diretorio = consolidacao_gl_extract(diretorio_final)
     
     if not df_consolidado.empty and data_diretorio is not None:
@@ -160,6 +144,8 @@ def main():
             logging.info(f"Arquivos salvos: {output_path_feather} e {output_path_csv}")
         except Exception as e:
             logging.error(f"Erro ao salvar os arquivos: {e}")
+    else:
+        logging.warning("Nenhum dado consolidado disponível para salvar.")
 
 if __name__ == "__main__":
     main()

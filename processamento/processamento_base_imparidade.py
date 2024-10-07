@@ -23,6 +23,12 @@ def selecionar_arquivo():
         title="Selecione o arquivo consolidado",
         filetypes=[("Feather files", "*.feather"), ("CSV files", "*.csv")]
     )
+    
+    if arquivo_selecionado:
+        logging.info(f"Arquivo selecionado: {arquivo_selecionado}")
+    else:
+        logging.warning("Nenhum arquivo foi selecionado.")
+    
     return arquivo_selecionado
 
 def transformar_dataframe(df):
@@ -35,11 +41,21 @@ def transformar_dataframe(df):
     Retorna:
     - DataFrame transformado.
     """
-    # Adiciona '_GL' ao final dos nomes das colunas
-    df['DATA'] = pd.to_datetime(df['DATA']).dt.strftime('%d/%m/%Y')
-    df = df.drop_duplicates()
-    
-    return df
+    try:
+        logging.info("Iniciando as transformações no DataFrame.")
+        
+        # Formatar a coluna 'DATA' e remover duplicatas
+        df['DATA'] = pd.to_datetime(df['DATA'], errors='coerce').dt.strftime('%d/%m/%Y')
+        df = df.drop_duplicates()
+        
+        logging.info("Transformações aplicadas com sucesso.")
+        return df
+    except KeyError as e:
+        logging.error(f"Erro na transformação: Coluna não encontrada - {e}")
+        raise
+    except Exception as e:
+        logging.exception(f"Erro inesperado durante a transformação: {e}")
+        raise
 
 def salvar_dataframe(df, output_directory):
     """
@@ -49,16 +65,21 @@ def salvar_dataframe(df, output_directory):
     - df (DataFrame): O DataFrame consolidado e transformado.
     - output_directory (str): O caminho do diretório onde salvar os arquivos.
     """
-    nome_arquivo = "Consolidado_Imparidade_Credito"
-    
-    # Caminhos para salvar os arquivos
-    output_path_feather = os.path.join(output_directory, f"{nome_arquivo}.feather")
-    output_path_csv = os.path.join(output_directory, f"{nome_arquivo}.csv")
-    
-    # Salvar o DataFrame em Feather e CSV
-    df.to_feather(output_path_feather)
-    df.to_csv(output_path_csv, encoding='UTF-8-sig', index=False)
-    logging.info(f"Arquivos transformados e salvos: {output_path_feather} e {output_path_csv}")
+    try:
+        nome_arquivo = "Consolidado_Imparidade_Credito"
+        
+        # Caminhos para salvar os arquivos
+        output_path_feather = os.path.join(output_directory, f"{nome_arquivo}.feather")
+        output_path_csv = os.path.join(output_directory, f"{nome_arquivo}.csv")
+        
+        # Salvar o DataFrame em Feather e CSV
+        df.to_feather(output_path_feather)
+        df.to_csv(output_path_csv, encoding='UTF-8-sig', index=False)
+        
+        logging.info(f"Arquivos transformados e salvos: {output_path_feather} e {output_path_csv}")
+    except Exception as e:
+        logging.error(f"Erro ao salvar os arquivos: {e}")
+        raise
 
 def main():
     # Configurar o logging
@@ -80,14 +101,21 @@ def main():
             return
         
         # Aplicar as transformações desejadas
-        df_transformado = transformar_dataframe(df)
+        try:
+            df_transformado = transformar_dataframe(df)
+        except Exception as e:
+            logging.error(f"Erro durante a transformação: {e}")
+            return
         
-        # Defina manualmente o diretório de saída
+        # Definir manualmente o diretório de saída
         output_directory = "C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/02. Dados Processados/05. Imparidade"
         
         if output_directory:
             # Salvar o DataFrame transformado
-            salvar_dataframe(df_transformado, output_directory)
+            try:
+                salvar_dataframe(df_transformado, output_directory)
+            except Exception as e:
+                logging.error(f"Erro ao salvar o DataFrame transformado: {e}")
         else:
             logging.warning("Nenhum diretório de saída definido.")
     else:
