@@ -1,6 +1,6 @@
-2024-10-02 16:15:08,333 - INFO - Transformação do DataFrame ods_contrato concluída com sucesso.
-2024-10-02 16:15:08,399 - INFO - Transformação do DataFrame ods_interveniente concluída com sucesso.
-2024-10-02 16:15:29,333 - INFO - Transformação do DataFrame ods_avaliacao concluída com sucesso.
-2024-10-02 16:15:29,340 - INFO - Transformação do DataFrame ods_operacao concluída com sucesso.
-2024-10-02 16:15:30,929 - INFO - Fusão dos DataFrames para base final de informática concluída com sucesso.
-2024-10-02 16:15:33,101 - INFO - Arquivos CSV gerados com sucesso.
+2024-10-09 10:04:03,856 - INFO - Transformação do DataFrame ods_contrato concluída com sucesso.
+2024-10-09 10:04:03,932 - INFO - Transformação do DataFrame ods_interveniente concluída com sucesso.
+2024-10-09 10:04:28,380 - INFO - Transformação do DataFrame ods_avaliacao concluída com sucesso.
+2024-10-09 10:04:28,413 - INFO - Transformação do DataFrame ods_operacao concluída com sucesso.
+2024-10-09 10:04:30,487 - INFO - Fusão dos DataFrames para base final de informática concluída com sucesso.
+2024-10-09 10:04:33,912 - INFO - Arquivos CSV gerados com sucesso.

@@ -45,7 +45,6 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
     merged_ctb['DATAMESANTERIORFINAL'] = np.where(merged_ctb['TAXA'] == 'Variável', merged_ctb['DATAMESANTERIORFORMALIZAÇÃO'], merged_ctb['DATAFTPSWAP'])
 
     # Pros mistos ou fixos buscar a última data 
-
     merged_ctb['DATA'] = pd.to_datetime(merged_ctb['DATA'])
     merged_ctb['DATA'] = merged_ctb['DATA'].dt.strftime('%d/%m/%Y')    
 
@@ -55,16 +54,23 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
 
     merged_ctb['DURATION'] = merged_ctb['DURATION'].astype(int)
 
-    merged_ctb['ID_SWAP'] = merged_ctb['DATAFTPSWAP'].astype(str).str.cat(merged_ctb['DURATION'].astype(str), sep='_')
+    merged_ctb['ID_SWAP'] = (
+        merged_ctb['DATAFTPSWAP'].astype(str)
+        .str.cat(merged_ctb['DURATION'].astype(str), sep='')
+        + merged_ctb['DESC_TAXA']
+        + merged_ctb['TANATUAL'].astype(str) 
+    )
     
     gl_extract_df = gl_extract_df.rename(columns={'IDCONTRATOCH':'IDCONTRATOCH_GL', 'DATA':'DATA_GL'})
         
     merged_gl = pd.merge(merged_ctb, gl_extract_df, left_on=['IDCONTRATOCH','DATA'], right_on=['IDCONTRATOCH_GL','DATA_GL'], how='outer', indicator=False)
 
+    merged_gl['DATA'] = merged_gl['DATA'].fillna(merged_gl['DATA_GL'])
+
     # Criando a coluna 'ANGARIADOR' baseada nas condições
     # A quantidade total de contratos bate, porém a abertura entre 'Rede Lojas' e 'Imobiliárias' não bate devido a falta de histórico
     merged_gl['ANGARIADOR'] = np.where((merged_gl['AMT Com.Dif #3400001600'] > 0) | 
-                                        (merged_gl['6701001087_GL'] > 0), 
+                                        (merged_gl['6701001087_GL'] < 0), 
                                         'Imobiliária', 'Loja')
     
     merged_gl['ANGARIADOR'] = np.where(merged_gl['IDCONTRATOCH'] == 0,
@@ -87,7 +93,7 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
     merged_ang = pd.merge(merged_gl, angariador_df, on='IDCONTRATOCH', how='left', indicator=False)
 
     merged_ang['Empresa'] = np.where(((merged_ang['IDTIPOTAXAJURO'].isin([3, 4, 5])) & 
-                                    (merged_ang['SPREADATUAL'] == 0) & pd.isna(merged_ang['Empresa'])), 
+                                    (merged_ang['SPREADATUAL'] <= 0.05) & pd.isna(merged_ang['Empresa'])), 
                                 'Protocolo CH', 
                                 merged_ang['Empresa'])
     

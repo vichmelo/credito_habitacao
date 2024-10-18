@@ -81,12 +81,13 @@ def transform_ods_contrato(ods_contrato, id_tipo_taxa_juro, id_fin_cred, id_fin_
 
         # Aplicando lógica condicional para buckets de maturidade
         conditions = [
+            (ods_contrato_df['PRAZOCONTRATADOANOS'] <= 20),
             (ods_contrato_df['PRAZOCONTRATADOANOS'] <= 25),
             (ods_contrato_df['PRAZOCONTRATADOANOS'] <= 30),
             (ods_contrato_df['PRAZOCONTRATADOANOS'] <= 35),
             (ods_contrato_df['PRAZOCONTRATADOANOS'] <= 100)
         ]
-        values = [25, 30, 35, 40]
+        values = [20, 25, 30, 35, 40]
         ods_contrato_df['MATURIDADE BUCKETS'] = np.select(conditions, values, default=0)
 
         ods_contrato_df['MATURIDADE BUCKETS'] = ods_contrato_df['MATURIDADE BUCKETS'].astype(str)
