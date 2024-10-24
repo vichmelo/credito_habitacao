@@ -1,4 +1,6 @@
 import pandas as pd
+from pandas.tseries.offsets import MonthEnd
+import numpy as np
 import os
 import logging
 
@@ -81,9 +83,35 @@ def transform_carteira(carteira):
                                    'AMT Com.Dif #5301001200', 'AMT Com.Dif #5301001300', 'AMT Com.Dif #5301001400', 'AMT Juro Corrido On-BS_M-1',
                                    'AMT Juro Corrido Dif', 'B/S Adj D Cred C P&L', 'B/S Adj D Cred C P&L_M-1', 'P&L - NIM', 'P&L - NIM_M-1',
                                    'AMT Juro Vencido Dif', 'B/S Adj D Cred C P&L_Dif', 'P&L - NIM_Dif', 'B/S Adj D P&L / C B/S', 'B/S Adj D P&L / C B/S_M-1', 
-                                   'B/S Adj D P&L / C B/S_Dif']]
-
+                                   'B/S Adj D P&L / C B/S_Dif', 'DT Vencimento', 'DT Reembolso Total Antec']]
         
+        carteira
+
+        carteira_df['Data'] = pd.to_datetime(carteira_df['Data'])
+
+        carteira_df['DataFinalMes'] = carteira_df['Data'] + MonthEnd(0)
+
+                # Passo 1: Converter datas no formato Excel para datetime
+        carteira_df['DT Vencimento'] = pd.to_datetime('1899-12-30') + pd.to_timedelta(carteira_df['DT Vencimento'], unit='D')
+        carteira_df['DT Reembolso Total Antec'] = pd.to_datetime('1899-12-30') + pd.to_timedelta(carteira_df['DT Reembolso Total Antec'], unit='D')
+
+        conditions = [
+            carteira_df['DT Vencimento'] <= carteira_df['DataFinalMes'],
+            carteira_df['DT Reembolso Total Antec'].isna(),
+            carteira_df['DT Reembolso Total Antec'].notna()
+        ]
+
+        results = [
+            'Maturou',
+            'Vivo',
+            'Liquidado'
+        ]
+
+        carteira_df['Status'] = np.select(conditions, results, default='Desconhecido')
+
+        # Passo 2: Converter DataFinalMes para datetime
+        #DataFinalMes_date = pd.to_datetime(DataFinalMes, format='%Y-%m-%d')
+
         logging.info("Transformação da carteira concluída com sucesso.")
         return carteira_df
     except KeyError as ke:

@@ -69,6 +69,8 @@ def transformar_swap_historico(diretorio, file_name):
 
         # Criando pivot table (unpivot)
         df_unpivot = pd.melt(swap_historico, id_vars=['SWAP'], var_name='Intervalo', value_name='Valor')
+
+        #df_unpivot['Intervalo'] = pd.to_numeric(df_unpivot['Intervalo'])
       
         df_unpivot['ID_SWAP'] = df_unpivot['SWAP'].astype(str).str.cat(df_unpivot['Intervalo'].astype(str), sep='_')
         

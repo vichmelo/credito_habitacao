@@ -49,17 +49,18 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
     merged_ctb['DATA'] = pd.to_datetime(merged_ctb['DATA'])
     merged_ctb['DATA'] = merged_ctb['DATA'].dt.strftime('%d/%m/%Y')    
 
-    merged_ctb['ID_FTP'] = merged_ctb['DATAMESANTERIORFINAL'].astype(str).str.cat(merged_ctb['MATURIDADE BUCKETS_x'].astype(str), sep='_')
+    # Fill NaN values with an empty string, then convert to string and concatenate
+    merged_ctb['ID_FTP'] = merged_ctb['DATAMESANTERIORFINAL'].astype(str).str.cat(
+        merged_ctb['MATURIDADE BUCKETS_x'].astype(str), sep='_'
+    )
 
     merged_ctb['DURATION'] = merged_ctb['DURATION'].fillna(0)
 
     merged_ctb['DURATION'] = merged_ctb['DURATION'].astype(int)
 
     merged_ctb['ID_SWAP'] = (
-        merged_ctb['DATAFTPSWAP'].astype(str)
-        .str.cat(merged_ctb['DURATION'].astype(str), sep='')
-        + merged_ctb['DESC_TAXA']
-        + merged_ctb['TANATUAL'].astype(str) 
+        merged_ctb['DATAFTPSWAP'].fillna('').astype(str) + '_' +
+        merged_ctb['MATURIDADE BUCKETS_x'].fillna('').astype(str)
     )
     
     gl_extract_df = gl_extract_df.rename(columns={'IDCONTRATOCH':'IDCONTRATOCH_GL', 'DATA':'DATA_GL'})
@@ -226,7 +227,6 @@ def main():
     processing_dir = Path(r'C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados')
     output_dir = Path('C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/03. Outputs')
 
-
     # Verificar se o diretório de processamento existe
     if processing_dir.exists():
         # Verificar se os arquivos de entrada existem
@@ -256,7 +256,7 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Gerar os arquivos de saída
-        output_file = Path(output_dir / 'Controlo Crédito Habitação_Set24.csv')
+        output_file = Path(output_dir / 'Controlo Crédito Habitação_0924.csv')
         controlo_ch_df.to_csv(output_file, index=False, encoding='utf-8-sig')
 
         print(f"Arquivo gerado com sucesso em: {output_file}")
