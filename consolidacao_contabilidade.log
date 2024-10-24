@@ -1,0 +1,185 @@
+2024-10-18 14:44:47,939 - INFO - Pasta selecionada: C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/00. Fontes de Dados/02. Contabilidade
+2024-10-18 14:44:47,939 - INFO - Processando arquivo: 2023_12 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:44:51,602 - INFO - Processando arquivo: 2024_01 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:44:55,299 - INFO - Processando arquivo: 2024_02 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:44:59,274 - INFO - Processando arquivo: 2024_03 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:03,041 - INFO - Processando arquivo: 2024_04 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:06,781 - INFO - Processando arquivo: 2024_05 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:10,468 - INFO - Processando arquivo: 2024_06 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:14,302 - INFO - Processando arquivo: 2024_07 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:18,473 - INFO - Processando arquivo: 2024_08 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:22,695 - INFO - Processando arquivo: 2024_09 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:27,216 - INFO - Total de arquivos consolidados: 10
+2024-10-18 14:45:27,253 - INFO - Processando Taxas Mistas para o arquivo: 2023_12 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:27,254 - INFO - Tentando leitura com header=1 para o arquivo: 2023_12 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:27,690 - ERROR - Erro ao processar Taxas Mistas no arquivo '2023_12 - Carteira Crédito Habitação.xlsb': Worksheet named 'TaxasMistas' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 115, in consolidacao_taxas_mistas
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=1)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'TaxasMistas' not found
+2024-10-18 14:45:27,722 - INFO - Processando Taxas Mistas para o arquivo: 2024_01 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:27,723 - INFO - Tentando leitura com header=1 para o arquivo: 2024_01 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:28,094 - ERROR - Erro ao processar Taxas Mistas no arquivo '2024_01 - Carteira Crédito Habitação.xlsb': Worksheet named 'TaxasMistas' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 115, in consolidacao_taxas_mistas
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=1)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'TaxasMistas' not found
+2024-10-18 14:45:28,110 - INFO - Processando Taxas Mistas para o arquivo: 2024_02 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:28,110 - INFO - Tentando leitura com header=1 para o arquivo: 2024_02 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:28,729 - ERROR - Erro ao processar Taxas Mistas no arquivo '2024_02 - Carteira Crédito Habitação.xlsb': Worksheet named 'TaxasMistas' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 115, in consolidacao_taxas_mistas
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=1)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'TaxasMistas' not found
+2024-10-18 14:45:28,737 - INFO - Processando Taxas Mistas para o arquivo: 2024_03 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:28,737 - INFO - Tentando leitura com header=1 para o arquivo: 2024_03 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:29,411 - INFO - Processando Taxas Mistas para o arquivo: 2024_04 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:29,423 - INFO - Tentando leitura com header=1 para o arquivo: 2024_04 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:29,998 - INFO - Processando Taxas Mistas para o arquivo: 2024_05 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:29,999 - INFO - Tentando leitura com header=1 para o arquivo: 2024_05 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:30,569 - INFO - Processando Taxas Mistas para o arquivo: 2024_06 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:30,570 - INFO - Tentando leitura com header=1 para o arquivo: 2024_06 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:31,111 - INFO - Tentando leitura com header=2 para o arquivo: 2024_06 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:31,656 - INFO - Processando Taxas Mistas para o arquivo: 2024_07 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:31,656 - INFO - Tentando leitura com header=1 para o arquivo: 2024_07 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:32,183 - INFO - Tentando leitura com header=2 para o arquivo: 2024_07 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:32,750 - INFO - Processando Taxas Mistas para o arquivo: 2024_08 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:32,750 - INFO - Tentando leitura com header=1 para o arquivo: 2024_08 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:33,342 - INFO - Tentando leitura com header=2 para o arquivo: 2024_08 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:33,925 - INFO - Processando Taxas Mistas para o arquivo: 2024_09 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:33,925 - INFO - Tentando leitura com header=1 para o arquivo: 2024_09 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:34,471 - INFO - Tentando leitura com header=2 para o arquivo: 2024_09 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:35,084 - INFO - Consolidando 7 arquivos de Taxas Mistas.
+2024-10-18 14:45:35,086 - INFO - Processando Protocolos CH para o arquivo: 2023_12 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:35,462 - ERROR - Erro ao processar Protocolos CH no arquivo '2023_12 - Carteira Crédito Habitação.xlsb': Worksheet named 'ProtocolosCH' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 166, in consolidacao_protocolo
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=2)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'ProtocolosCH' not found
+2024-10-18 14:45:35,476 - INFO - Processando Protocolos CH para o arquivo: 2024_01 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:35,843 - ERROR - Erro ao processar Protocolos CH no arquivo '2024_01 - Carteira Crédito Habitação.xlsb': Worksheet named 'ProtocolosCH' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 166, in consolidacao_protocolo
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=2)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'ProtocolosCH' not found
+2024-10-18 14:45:35,843 - INFO - Processando Protocolos CH para o arquivo: 2024_02 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:36,211 - ERROR - Erro ao processar Protocolos CH no arquivo '2024_02 - Carteira Crédito Habitação.xlsb': Worksheet named 'ProtocolosCH' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 166, in consolidacao_protocolo
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=2)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'ProtocolosCH' not found
+2024-10-18 14:45:36,231 - INFO - Processando Protocolos CH para o arquivo: 2024_03 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:36,630 - ERROR - Erro ao processar Protocolos CH no arquivo '2024_03 - Carteira Crédito Habitação.xlsb': Worksheet named 'ProtocolosCH' not found
+Traceback (most recent call last):
+  File "c:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\scripts_ch\consolidacao\consolidação_base_contabilidade.py", line 166, in consolidacao_protocolo
+    df = pd.read_excel(caminho_arquivo, sheet_name=sheet_name, header=2)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_pyxlsb.py", line 74, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\1502553\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'ProtocolosCH' not found
+2024-10-18 14:45:36,636 - INFO - Processando Protocolos CH para o arquivo: 2024_04 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:37,076 - INFO - Processando Protocolos CH para o arquivo: 2024_05 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:37,478 - INFO - Processando Protocolos CH para o arquivo: 2024_06 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:37,885 - INFO - Processando Protocolos CH para o arquivo: 2024_07 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:38,287 - INFO - Processando Protocolos CH para o arquivo: 2024_08 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:38,779 - INFO - Processando Protocolos CH para o arquivo: 2024_09 - Carteira Crédito Habitação.xlsb
+2024-10-18 14:45:39,284 - INFO - Total de arquivos de Protocolos CH consolidados: 6
+2024-10-18 14:45:42,167 - INFO - CSV da Carteira salvo com sucesso: C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/01. Dados Consolidados/02. Contabilidade\Carteira_Contabilidade.csv
+2024-10-18 14:45:42,199 - INFO - CSV de Taxas Mistas salvo com sucesso: C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/01. Dados Consolidados/02. Contabilidade\Taxas Mistas_Contabilidade.csv
+2024-10-18 14:45:42,202 - INFO - CSV de Protocolos CH salvo com sucesso: C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/01. Dados Consolidados/02. Contabilidade\Protocolos CH_Contabilidade.csv
+2024-10-18 14:45:44,912 - INFO - CSV da Contabilidade Geral salvo com sucesso: C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/01. Dados Consolidados/02. Contabilidade\Contabilidade.csv

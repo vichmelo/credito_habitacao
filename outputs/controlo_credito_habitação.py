@@ -9,6 +9,7 @@ app_path = Path(__file__).parents[1]
 sys.path.append(str(app_path))
 
 from general_database.general_database import id_tipo_taxa_juro, id_fin_cred, id_fin_prod, protocolo
+from general_database.taxa_swap import taxa_swap
 
 def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_df: pd.DataFrame, gl_extract_df: pd.DataFrame, base_imparidade: pd.DataFrame, ftp_historico: pd.DataFrame, swap_historico: pd.DataFrame):
     """
@@ -192,22 +193,39 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
 
     merged_swap['TANATUAL'] = merged_swap['TANATUAL'] / 100
 
+    merged_swap['TANATUAL'] = merged_swap['TANATUAL'].round(4)
+
     merged_swap['Euribor/SWAP'] = np.where(merged_swap['TAXA'] == 'Variável', merged_swap['EURIBOR'], merged_swap['Valor_y'])
 
     merged_swap['Spread Comercial'] = np.where(merged_swap['TAXA'] == 'Variável', merged_swap['SPREADATUAL'] - merged_swap['Valor_x'], merged_swap['TANATUAL'] - merged_swap['Valor_y'] - (merged_swap['Valor_x'] + merged_swap['SPREADATUAL']))
 
     final_df = merged_swap.sort_values('IDCONTRATOCH')
 
-    final_df = final_df.drop(columns={'DT_INFORMATION_y', 'index_GL', 'N. Proposta_y', 'DURACAOTXFIXA_y', 'MATURIDADE BUCKETS_y'})
+    final_df = final_df.drop(columns={'DT_INFORMATION_y', 'N. Proposta_y', 'DURACAOTXFIXA_y', 'MATURIDADE BUCKETS_y'})
 
     final_df = final_df.rename(columns={'DT_INFORMATION_x':'DT_INFORMATION', 'N. Proposta_x':'N. Proposta', 'Dos quais:Imparidade On-balance': 'Imparidade On-balance', 'ANGARIADOR_x':'ANGARIADOR', 'Valor_y':'Taxa SWAP', 'Valor_x':'Taxa FTP'})
         
-    return final_df
+    final_df['DATAMESANTERIORFINAL'] = pd.to_datetime(final_df['DATAMESANTERIORFINAL'])
+
+    final_df['Unique ID SWAP'] = (
+    final_df['DATAMESANTERIORFINAL'].astype(str) + 
+    final_df['MATURIDADE BUCKETS_x'].astype(str) + 
+    final_df['DURACAOTXFIXA_x'].astype(str) +
+    final_df['DESC_TAXA'].astype(str) + 
+    final_df['TANATUAL'].astype(str)
+)
+    
+    final_df['Unique ID SWAP'] = final_df['Unique ID SWAP'].str.replace('NaTnannannannan', '') 
+
+    final_df_swap = pd.merge(final_df, taxa_swap, how='left', on='Unique ID SWAP', indicator=True)
+
+    return final_df_swap
 
 def main():
     # Selecionar a pasta de processamento e a de saída
     processing_dir = Path(r'C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados')
-    output_dir = Path(r'C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\03. Outputs')
+    output_dir = Path('C:/Users/1502553/CTT - Correios de Portugal/Planeamento e Controlo - PCG_MIS/20. Project/Analytics/07. PBI Crédito Hipotecário/Projeto Crédito Hipotecário/03. Outputs')
+
 
     # Verificar se o diretório de processamento existe
     if processing_dir.exists():
@@ -238,7 +256,7 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Gerar os arquivos de saída
-        output_file = output_dir / 'Controlo Crédito Habitação_v4.1.csv'
+        output_file = Path(output_dir / 'Controlo Crédito Habitação_Set24.csv')
         controlo_ch_df.to_csv(output_file, index=False, encoding='utf-8-sig')
 
         print(f"Arquivo gerado com sucesso em: {output_file}")

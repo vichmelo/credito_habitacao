@@ -27,7 +27,7 @@ def selecionar_diretorio():
     """
     root = tk.Tk()
     root.withdraw()  # Oculta a janela principal do Tkinter
-    diretorio_selecionado = filedialog.askdirectory(title="Selecione o diretório de entrada")
+    diretorio_selecionado = filedialog.askdirectory(title="Selecione a pasta com os arquivos Excel")
     if not diretorio_selecionado:
         logging.warning("Nenhum diretório foi selecionado.")
     else:
