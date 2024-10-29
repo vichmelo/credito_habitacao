@@ -1,7 +1,7 @@
-2024-10-24 11:50:21,215 - INFO - Carregando o arquivo: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\00. Fontes de Dados\04. General Database\FTP_SWAP Tesouraria.xlsx
-2024-10-24 11:50:21,409 - INFO - Arquivo carregado com sucesso: FTP_SWAP Tesouraria.xlsx
-2024-10-24 11:50:21,433 - INFO - Arquivo CSV salvo com sucesso em: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados\04. General Database\FTP_Histórico_transformado.csv
-2024-10-24 11:50:21,433 - INFO - Carregando o arquivo: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\00. Fontes de Dados\04. General Database\FTP_SWAP Tesouraria.xlsx
-2024-10-24 11:50:21,469 - INFO - Arquivo carregado com sucesso: FTP_SWAP Tesouraria.xlsx
-2024-10-24 11:50:21,487 - INFO - Arquivo CSV salvo com sucesso em: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados\04. General Database\SWAP_Histórico_transformado.csv
-2024-10-24 11:50:21,488 - INFO - Transformação do FTP e SWAP Histórico concluída com sucesso.
+2024-10-28 16:35:16,547 - INFO - Carregando o arquivo: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\00. Fontes de Dados\04. General Database\FTP_SWAP Tesouraria.xlsx
+2024-10-28 16:35:16,753 - INFO - Arquivo carregado com sucesso: FTP_SWAP Tesouraria.xlsx
+2024-10-28 16:35:16,770 - INFO - Arquivo CSV salvo com sucesso em: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados\04. General Database\FTP_Histórico_transformado.csv
+2024-10-28 16:35:16,770 - INFO - Carregando o arquivo: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\00. Fontes de Dados\04. General Database\FTP_SWAP Tesouraria.xlsx
+2024-10-28 16:35:16,802 - INFO - Arquivo carregado com sucesso: FTP_SWAP Tesouraria.xlsx
+2024-10-28 16:35:16,825 - INFO - Arquivo CSV salvo com sucesso em: C:\Users\1502553\CTT - Correios de Portugal\Planeamento e Controlo - PCG_MIS\20. Project\Analytics\07. PBI Crédito Hipotecário\Projeto Crédito Hipotecário\02. Dados Processados\04. General Database\SWAP_Histórico_transformado.csv
+2024-10-28 16:35:16,826 - INFO - Transformação do FTP e SWAP Histórico concluída com sucesso.

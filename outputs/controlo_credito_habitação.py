@@ -194,18 +194,77 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
 
     merged_swap['TANATUAL'] = merged_swap['TANATUAL'] / 100
 
-    merged_swap['TANATUAL'] = merged_swap['TANATUAL'].round(4)
 
-    merged_swap['Euribor/SWAP'] = np.where(merged_swap['TAXA'] == 'Variável', merged_swap['EURIBOR'], merged_swap['Valor_y'])
 
-    merged_swap['Spread Comercial'] = np.where(merged_swap['TAXA'] == 'Variável', merged_swap['SPREADATUAL'] - merged_swap['Valor_x'], merged_swap['TANATUAL'] - merged_swap['Valor_y'] - (merged_swap['Valor_x'] + merged_swap['SPREADATUAL']))
+    # criando o df tam stock para mitigar os TAN que são iguais a 0, para esses casos buscaremos a última TAN registrada.
+    tan_stock = merged_swap[['IDCONTRATOCH', 'TANATUAL', 'DATA']]
+    tan_stock = tan_stock[tan_stock['TANATUAL'] != 0]
+    tan_stock = tan_stock.rename(columns={'TANATUAL': 'TANSTOCK'})
 
-    final_df = merged_swap.sort_values('IDCONTRATOCH')
+    # Converte a coluna DATA para o tipo datetime para que possamos identificar a data mais recente
+    tan_stock['DATA'] = pd.to_datetime(tan_stock['DATA'], format='%d/%m/%Y')
+
+    # Agrupa por IDCONTRATOCH e pega a linha com a maior DATA em cada grupo
+    tan_stock = tan_stock.loc[tan_stock.groupby('IDCONTRATOCH')['DATA'].idxmax()]
+
+    # Ordena o resultado por IDCONTRATOCH, se necessário
+    tan_stock = tan_stock.sort_values(by='IDCONTRATOCH').reset_index(drop=True)
+
+    tan_stock = tan_stock[['IDCONTRATOCH', 'TANSTOCK']]
+
+    merged_tan = pd.merge(merged_swap, tan_stock, how='left', on=['IDCONTRATOCH'], indicator=False) 
+
+    merged_tan['TANSTOCKFTP'] = np.where(merged_tan['TANATUAL'] == 0, merged_tan['TANSTOCK'], merged_tan['TANATUAL'])
+    merged_tan['TANSTOCKFTP'] = merged_tan['TANSTOCKFTP'].fillna(0)
+
+    # Define the conditions
+    conditions = [
+        merged_tan['TAXA'] == 'Variável',
+        merged_tan['NEW_DESCTAXA'] == 'Mista_EURIBOR 6M 70% - FIXA_48'
+    ]
+
+    # Define the choices based on each condition
+    choices = [
+        merged_tan['SPREADATUAL'] - merged_tan['Valor_x'],
+        merged_tan['SPREADATUAL'] - merged_tan['Valor_x']
+    ]
+
+    # Define the default value if none of the conditions are met
+    default_value = merged_tan['TANATUAL'] - merged_tan['Valor_y'] - (merged_tan['Valor_x'] + merged_tan['SPREADATUAL'])
+
+    # Apply np.select
+    merged_tan['Spread Comercial'] = np.select(conditions, choices, default=default_value).round(40)
+
+    merged_tan['Spread Gestão'] = np.where(merged_tan['NEW_DESCTAXA'] == 'Mista_EURIBOR 6M 70% - FIXA_48', merged_tan['Spread Comercial'] + merged_tan['Valor_x'], merged_tan['SPREADATUAL'])
+
+
+    # Define the conditions
+    conditions = [
+        merged_tan['TAXA'] == 'Variável',
+        merged_tan['NEW_DESCTAXA'] == 'Mista_EURIBOR 6M 70% - FIXA_48'
+    ]
+
+    # Define the choices for each condition
+    choices = [
+        merged_tan['EURIBOR'],
+        merged_tan['TANATUAL'] - merged_tan['Spread Gestão']
+    ]
+
+    # Define the default value if none of the conditions are met
+    default_value = merged_tan['Valor_y']
+
+    # Apply np.select
+    merged_tan['Indexante'] = np.select(conditions, choices, default=default_value)
+    merged_tan['Indexante'] = merged_tan['Indexante'].round(40)
+
+    final_df = merged_tan.sort_values('IDCONTRATOCH')
 
     final_df = final_df.drop(columns={'DT_INFORMATION_y', 'N. Proposta_y', 'DURACAOTXFIXA_y', 'MATURIDADE BUCKETS_y'})
 
     final_df = final_df.rename(columns={'DT_INFORMATION_x':'DT_INFORMATION', 'N. Proposta_x':'N. Proposta', 'Dos quais:Imparidade On-balance': 'Imparidade On-balance', 'ANGARIADOR_x':'ANGARIADOR', 'Valor_y':'Taxa SWAP', 'Valor_x':'Taxa FTP'})
         
+    final_df['Taxa FTP'] = final_df['Taxa FTP'].round(40)
+
     final_df['DATAMESANTERIORFINAL'] = pd.to_datetime(final_df['DATAMESANTERIORFINAL'])
 
     final_df['Unique ID SWAP'] = (
@@ -220,7 +279,24 @@ def transform_controlo_ch(base_informatica_df: pd.DataFrame, base_contabilidade_
 
     final_df_swap = pd.merge(final_df, taxa_swap, how='left', on='Unique ID SWAP', indicator=True)
 
-    return final_df_swap
+    final_df_swap['Teste Adqueação FTP'] = final_df_swap['TANATUAL_x'] - final_df_swap['Indexante'] - final_df_swap['Spread Comercial'] - final_df_swap['Taxa FTP']
+    final_df_swap['Teste Adqueação FTP'] = final_df_swap['Teste Adqueação FTP'].round(15)
+
+    final_df_swap['ContemJuro'] = np.where(final_df_swap['Juro Efetivo'] == 0, 'Não', 'Sim')
+
+    final_df_swap['Teste Adqueação FTP'] = np.where(final_df_swap['ContemJuro'] == 'Não', 0, final_df_swap['Teste Adqueação FTP'])
+    final_df_swap['Teste Adqueação FTP'] = final_df_swap['Teste Adqueação FTP'].round(4)
+
+    final_df_swap['Indexante_Juro'] = final_df_swap['JE - Juro']*final_df_swap['Indexante']/final_df_swap['TANATUAL_x']
+    final_df_swap['Spread_Juro'] = final_df_swap['JE - Juro']*final_df_swap['SPREADATUAL']/final_df_swap['TANATUAL_x']
+    final_df_swap['Spread Comercial_Juro'] = final_df_swap['JE - Juro']*final_df_swap['Spread Comercial']/final_df_swap['TANATUAL_x']
+    final_df_swap['Prémio de Liquidez_Juro'] = final_df_swap['JE - Juro']*final_df_swap['Taxa FTP']/final_df_swap['TANATUAL_x']
+    final_df_swap['Margem Tesouraria_Juro'] = final_df_swap['Indexante_Juro'] + final_df_swap['Prémio de Liquidez_Juro']
+    final_df_swap['Margem Comercial_Juro'] = final_df_swap['Spread Comercial_Juro']
+    final_df_swap['Teste_Calculo'] = final_df_swap['Indexante_Juro'] + final_df_swap['Spread Comercial_Juro'] + final_df_swap['Prémio de Liquidez_Juro'] - final_df_swap['JE - Juro']
+    final_df_swap['Teste_CalculoII'] = final_df_swap['Margem Tesouraria_Juro'] + final_df_swap['Margem Comercial_Juro'] - final_df_swap['JE - Juro']
+
+    return final_df_swap 
 
 def main():
     # Selecionar a pasta de processamento e a de saída
@@ -256,7 +332,7 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Gerar os arquivos de saída
-        output_file = Path(output_dir / 'Controlo Crédito Habitação_0924.csv')
+        output_file = Path(output_dir / 'Controlo Crédito Habitação_0924_teste.csv')
         controlo_ch_df.to_csv(output_file, index=False, encoding='utf-8-sig')
 
         print(f"Arquivo gerado com sucesso em: {output_file}")
